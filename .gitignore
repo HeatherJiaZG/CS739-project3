@@ -1,0 +1,9 @@
+# built files
+*cmake-build-*/
+*.idea/
+
+# generated sources
+*gen-cpp/
+
+# others
+*.DS_Store
