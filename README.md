@@ -21,7 +21,7 @@ ssh -p 22 tson1111@c220g5-111005.wisc.cloudlab.us # node2
 1. C issues a write request to P
 2. handler function on P requires a writer lock
 3. P sends sync RPC request to B
-4. P update local contents
+4. P update local contents by 4KB
 5. P waits for ack from B
 6. Upon getting ack from B, P sends ack to C
 
@@ -38,9 +38,10 @@ ssh -p 22 tson1111@c220g5-111005.wisc.cloudlab.us # node2
 | TBA         | TBA         | TBA         |
 
 ### Concurrency Control (multiple clients)
-TBA
+read/write lock
 
 ## TODO
-1. Support block storage on servers (how?)
+1. Support block storage on servers - a global unique space (i.e., a logical block device) (how?)
+* Option1: Can we read/write to the same file and treat it as a central storage place?
 2. Create template for clients (read+write, should be easy)
-3. TBA 
+3. Central or replicated lock server? Note that the lock server can crash.
