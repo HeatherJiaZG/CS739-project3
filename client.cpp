@@ -1,15 +1,20 @@
 // This is built on gen-cpp/Client_server.skeleton.cpp
 
 #include "client.h"
+#include "rwlock.h"
 #include <iostream>
 #include <fcntl.h>  
 #include <unistd.h>
 using namespace std;  
 
+
+
 void read(std::string& _return, const int64_t addr) {
   int fd;
   off_t offset = addr;
   char readbuf[BLOCK_SIZE];
+  
+  ReadLock r_lock(rwLock);
 
   if ((fd = open(CENTRAL_STORAGE, O_RDONLY)) == -1) {
 		perror("open error");
@@ -25,6 +30,8 @@ int32_t write(const int64_t addr, const std::string& content) {
   int fd;
   off_t offset = addr;
   char writebuf[BLOCK_SIZE];
+
+  WriteLock w_lock(rwLock);
 
   if ((fd = open(CENTRAL_STORAGE, O_WRONLY)) == -1) { // TODO optimization: make fd a global var
 		perror("open error");
