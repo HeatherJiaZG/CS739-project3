@@ -12,7 +12,7 @@ namespace block_store {
 class PrimaryBackupHandler: public PrimaryBackupIf {
 
 public:
-  PrimaryBackupHandler() = default;
+  PrimaryBackupHandler();
 
   int32_t heartbeat(const int32_t msg) override;
   int32_t sync(const std::vector<int64_t> & addr, const std::vector<std::string> & content) override;

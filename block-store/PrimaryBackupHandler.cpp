@@ -6,6 +6,10 @@
 
 namespace block_store {
 
+PrimaryBackupHandler::PrimaryBackupHandler() {
+  // Initialization
+}
+
 int32_t PrimaryBackupHandler::heartbeat(const int32_t msg) {
   // TODO
   return 0;

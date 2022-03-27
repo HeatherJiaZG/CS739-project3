@@ -36,15 +36,44 @@ target_link_libraries(thrift_server_gen PUBLIC thrift_static)
 target_link_libraries(thrift_server_gen PUBLIC boost)
 
 #-----------------------------------------------------------------------------------------------------------------------
-# Thrift handler
+# Thrift handlers
 #-----------------------------------------------------------------------------------------------------------------------
 
 add_library(client_handler STATIC
-        ClientHandler.cpp ClientHandler.h)
+        ClientHandler.cpp ClientHandler.h
+        Config.h
+        rwlock.h)
 
-target_link_libraries(client_handler STATIC thrift_server_gen)
+target_link_libraries(client_handler PUBLIC thrift_server_gen)
+target_link_libraries(client_handler PUBLIC fmt::fmt)
+target_link_libraries(client_handler PUBLIC Threads::Threads)
 
 add_library(primary_backup_handler STATIC
-        PrimaryBackupHandler.cpp PrimaryBackupHandler.h)
+        PrimaryBackupHandler.cpp PrimaryBackupHandler.h
+        Config.h
+        rwlock.h)
 
-target_link_libraries(primary_backup_handler STATIC thrift_server_gen)
+target_link_libraries(primary_backup_handler PUBLIC thrift_server_gen)
+target_link_libraries(primary_backup_handler PUBLIC fmt::fmt)
+target_link_libraries(primary_backup_handler PUBLIC Threads::Threads)
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Executables
+#-----------------------------------------------------------------------------------------------------------------------
+
+add_executable(primary_main
+        PrimaryMain.cpp)
+
+target_link_libraries(primary_main PUBLIC client_handler)
+
+add_executable(backup_main
+        BackupMain.cpp)
+
+target_link_libraries(backup_main PUBLIC primary_backup_handler)
+
+add_executable(client_main
+        ClientMain.cpp
+        Config.h)
+
+target_link_libraries(client_main PUBLIC client_handler)
+target_link_libraries(client_main PUBLIC Threads::Threads)

@@ -4,6 +4,8 @@ typedef std::shared_mutex Lock;
 typedef std::unique_lock< Lock >  WriteLock;
 typedef std::shared_lock< Lock >  ReadLock;
 
+namespace block_store {
+
 Lock rwLock;
 
 /*
@@ -19,3 +21,5 @@ void WriteFunction()
      //Do writer stuff
 }
 */
+
+}

@@ -12,7 +12,7 @@ namespace block_store {
 class ClientHandler: public ClientIf {
 
 public:
-  ClientHandler() = default;
+  ClientHandler();
 
   void read(std::string& _return, const int64_t addr) override;
   int32_t write(const int64_t addr, const std::string& content) override;
