@@ -35,7 +35,6 @@ int32_t PrimaryBackupHandler::sync(const int64_t addr, const std::string& conten
   char writebuf[BLOCK_SIZE];
 
   WriteLock w_lock(rwLock);
-  w_lock.lock();
 
   if ((fd = open(CENTRAL_STORAGE.data(), O_WRONLY)) == -1) { // TODO optimization: make fd a global var
     perror("open error");
@@ -44,7 +43,6 @@ int32_t PrimaryBackupHandler::sync(const int64_t addr, const std::string& conten
   auto nBytes = pwrite(fd, writebuf, BLOCK_SIZE, offset);
   close(fd);
 
-  w_lock.unlock();
   cout<<"backup write success\n"<<endl;
 
   return (int32_t) nBytes;
@@ -56,14 +54,12 @@ int32_t PrimaryBackupHandler::sync_entire(const std::string& content) {
 
   // write entire content to file
   WriteLock w_lock(rwLock);
-  w_lock.lock();
 
   ofstream file;
   file.open(CENTRAL_STORAGE);
   file << content;
   file.close();
 
-  w_lock.unlock();
   cout<<"backup write-entire success\n"<<endl;
 
   return (int32_t) content.size();

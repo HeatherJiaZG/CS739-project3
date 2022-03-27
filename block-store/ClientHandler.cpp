@@ -57,7 +57,6 @@ int32_t ClientHandler::write(const int64_t addr, const std::string& content) {
   char writebuf[BLOCK_SIZE];
 
   WriteLock w_lock(rwLock);
-  w_lock.lock();
 
   if ((fd = open(CENTRAL_STORAGE.data(), O_WRONLY)) == -1) { // TODO optimization: make fd a global var
     perror("open error");
@@ -76,7 +75,6 @@ int32_t ClientHandler::write(const int64_t addr, const std::string& content) {
     toBackupClient_->sync_entire(ss.str());
   }
 
-  w_lock.unlock();
   cout<<"write success\n"<<endl;
 
   return (int32_t) nBytes;
