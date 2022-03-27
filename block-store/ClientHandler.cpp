@@ -19,7 +19,7 @@ namespace block_store {
 
 ClientHandler::ClientHandler() {
   // remove all contents in central storage to init
-  Util::initFile(CENTRAL_STORAGE.data());
+  Util::initFile(PRIMARY_CENTRAL_STORAGE.data());
 
   // connect to backup server
   toBackupSocket_ = std::make_shared<TSocket>(BACKUP_SERVER_HOSTNAME.data(), BACKUP_SERVER_PORT);
@@ -41,7 +41,7 @@ void ClientHandler::read(std::string& _return, const int64_t addr) {
 
   ReadLock r_lock(rwLock);
 
-  if ((fd = open(CENTRAL_STORAGE.data(), O_RDONLY)) == -1) {
+  if ((fd = open(PRIMARY_CENTRAL_STORAGE.data(), O_RDONLY)) == -1) {
     perror("open error");
     exit(1);
   }
@@ -58,7 +58,7 @@ int32_t ClientHandler::write(const int64_t addr, const std::string& content) {
 
   WriteLock w_lock(rwLock);
 
-  if ((fd = open(CENTRAL_STORAGE.data(), O_WRONLY)) == -1) { // TODO optimization: make fd a global var
+  if ((fd = open(PRIMARY_CENTRAL_STORAGE.data(), O_WRONLY)) == -1) { // TODO optimization: make fd a global var
     perror("open error");
     exit(1);
   }
@@ -69,7 +69,7 @@ int32_t ClientHandler::write(const int64_t addr, const std::string& content) {
   int32_t res = toBackupClient_->sync(addr, content);
   if (res == -1) {
     // backup out-of-date, sync entire storage
-    std::ifstream f(CENTRAL_STORAGE);
+    std::ifstream f(PRIMARY_CENTRAL_STORAGE);
     std::stringstream ss;
     ss << f.rdbuf();
     toBackupClient_->sync_entire(ss.str());

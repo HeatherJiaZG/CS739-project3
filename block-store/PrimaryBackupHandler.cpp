@@ -17,7 +17,7 @@ namespace block_store {
 PrimaryBackupHandler::PrimaryBackupHandler():
   synced_(false) {
   // remove all contents in central storage to init
-  Util::initFile(CENTRAL_STORAGE.data());
+  Util::initFile(BACKUP_CENTRAL_STORAGE.data());
 }
 
 int32_t PrimaryBackupHandler::heartbeat(const int32_t msg) {
@@ -36,7 +36,7 @@ int32_t PrimaryBackupHandler::sync(const int64_t addr, const std::string& conten
 
   WriteLock w_lock(rwLock);
 
-  if ((fd = open(CENTRAL_STORAGE.data(), O_WRONLY)) == -1) { // TODO optimization: make fd a global var
+  if ((fd = open(BACKUP_CENTRAL_STORAGE.data(), O_WRONLY)) == -1) { // TODO optimization: make fd a global var
     perror("open error");
     exit(1);
   }
@@ -50,13 +50,13 @@ int32_t PrimaryBackupHandler::sync(const int64_t addr, const std::string& conten
 
 int32_t PrimaryBackupHandler::sync_entire(const std::string& content) {
   // re-init central storage
-  Util::initFile(CENTRAL_STORAGE.data());
+  Util::initFile(BACKUP_CENTRAL_STORAGE.data());
 
   // write entire content to file
   WriteLock w_lock(rwLock);
 
   ofstream file;
-  file.open(CENTRAL_STORAGE);
+  file.open(BACKUP_CENTRAL_STORAGE);
   file << content;
   file.close();
 
