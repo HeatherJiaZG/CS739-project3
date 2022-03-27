@@ -34,3 +34,17 @@ add_library(thrift_server_gen STATIC
 
 target_link_libraries(thrift_server_gen PUBLIC thrift_static)
 target_link_libraries(thrift_server_gen PUBLIC boost)
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Thrift handler
+#-----------------------------------------------------------------------------------------------------------------------
+
+add_library(client_handler STATIC
+        ClientHandler.cpp ClientHandler.h)
+
+target_link_libraries(client_handler STATIC thrift_server_gen)
+
+add_library(primary_backup_handler STATIC
+        PrimaryBackupHandler.cpp PrimaryBackupHandler.h)
+
+target_link_libraries(primary_backup_handler STATIC thrift_server_gen)

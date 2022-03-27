@@ -1,3 +1,5 @@
+namespace cpp block_store
+
 service Client {
 	binary read(1: i64 addr)
 	i32 write(1: i64 addr, 2: binary content)
