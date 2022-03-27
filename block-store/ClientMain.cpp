@@ -24,7 +24,7 @@ int main() {
   try {
     transport->open();
   } catch (TException& tx) {
-    std::cout << fmt::format("ERROR: {}", tx.what()) << std::endl;
+    std::cout << fmt::format("Fail to connect to primary server: {}", tx.what()) << std::endl;
   }
 
   return 0;

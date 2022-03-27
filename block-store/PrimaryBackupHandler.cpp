@@ -3,21 +3,70 @@
 //
 
 #include "PrimaryBackupHandler.h"
+#include "rwlock.h"
+#include "Config.h"
+#include "Util.h"
+#include <iostream>
+#include "fstream"
+#include <fcntl.h>
+
+using namespace std;
 
 namespace block_store {
 
-PrimaryBackupHandler::PrimaryBackupHandler() {
-  // Initialization
+PrimaryBackupHandler::PrimaryBackupHandler():
+  synced_(false) {
+  // remove all contents in central storage to init
+  Util::initFile(CENTRAL_STORAGE.data());
 }
 
 int32_t PrimaryBackupHandler::heartbeat(const int32_t msg) {
-  // TODO
   return 0;
 }
 
-int32_t PrimaryBackupHandler::sync(const std::vector<int64_t> & addr, const std::vector<std::string> & content) {
-  // TODO
-  return 0;
+int32_t PrimaryBackupHandler::sync(const int64_t addr, const std::string& content) {
+  // if backup store is not synced to primary
+  if (!synced_) {
+    return -1;
+  }
+
+  int fd;
+  off_t offset = addr;
+  char writebuf[BLOCK_SIZE];
+
+  WriteLock w_lock(rwLock);
+  w_lock.lock();
+
+  if ((fd = open(CENTRAL_STORAGE.data(), O_WRONLY)) == -1) { // TODO optimization: make fd a global var
+    perror("open error");
+    exit(1);
+  }
+  auto nBytes = pwrite(fd, writebuf, BLOCK_SIZE, offset);
+  close(fd);
+
+  w_lock.unlock();
+  cout<<"backup write success\n"<<endl;
+
+  return (int32_t) nBytes;
+}
+
+int32_t PrimaryBackupHandler::sync_entire(const std::string& content) {
+  // re-init central storage
+  Util::initFile(CENTRAL_STORAGE.data());
+
+  // write entire content to file
+  WriteLock w_lock(rwLock);
+  w_lock.lock();
+
+  ofstream file;
+  file.open(CENTRAL_STORAGE);
+  file << content;
+  file.close();
+
+  w_lock.unlock();
+  cout<<"backup write-entire success\n"<<endl;
+
+  return (int32_t) content.size();
 }
 
 }

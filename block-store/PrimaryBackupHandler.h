@@ -15,7 +15,11 @@ public:
   PrimaryBackupHandler();
 
   int32_t heartbeat(const int32_t msg) override;
-  int32_t sync(const std::vector<int64_t> & addr, const std::vector<std::string> & content) override;
+  int32_t sync(const int64_t addr, const std::string& content) override;
+  int32_t sync_entire(const std::string& content) override;
+
+private:
+  bool synced_;
 
 };
 

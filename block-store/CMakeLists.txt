@@ -41,6 +41,7 @@ target_link_libraries(thrift_server_gen PUBLIC boost)
 
 add_library(client_handler STATIC
         ClientHandler.cpp ClientHandler.h
+        Util.cpp Util.h
         Config.h
         rwlock.h)
 
@@ -50,6 +51,7 @@ target_link_libraries(client_handler PUBLIC Threads::Threads)
 
 add_library(primary_backup_handler STATIC
         PrimaryBackupHandler.cpp PrimaryBackupHandler.h
+        Util.cpp Util.h
         Config.h
         rwlock.h)
 
