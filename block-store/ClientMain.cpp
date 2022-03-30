@@ -15,6 +15,8 @@ using namespace apache::thrift::protocol;
 using namespace apache::thrift::transport;
 using namespace block_store;
 
+void test1(ClientClient client);
+
 int main() {
   std::shared_ptr<TTransport> socket(new TSocket(PRIMARY_SERVER_HOSTNAME.data(), PRIMARY_SERVER_PORT));
   std::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
@@ -27,5 +29,14 @@ int main() {
     std::cout << fmt::format("Fail to connect to primary server: {}", tx.what()) << std::endl;
   }
 
+  test1(client);
+
   return 0;
+}
+
+void test1(ClientClient client){
+    client.write(0, "hello world");
+    std::string str;
+    client.read(str, 0);
+    std::cout << str << std::endl;
 }

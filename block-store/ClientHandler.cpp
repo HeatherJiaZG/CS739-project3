@@ -62,7 +62,9 @@ int32_t ClientHandler::write(const int64_t addr, const std::string& content) {
     perror("open error");
     exit(1);
   }
-  auto nBytes = pwrite(fd, writebuf, BLOCK_SIZE, offset);
+  std::strcat(writebuf, content.c_str());
+  int len = strlen(writebuf);
+  auto nBytes = pwrite(fd, writebuf, len, offset);
   close(fd);
 
   // Sync to backup
