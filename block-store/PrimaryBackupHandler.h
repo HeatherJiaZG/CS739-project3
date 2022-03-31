@@ -18,8 +18,8 @@ public:
   int32_t sync(const int64_t addr, const std::string& content) override;
   int32_t sync_entire(const std::string& content) override;
 
-private:
-  bool synced_;
+//private:
+//  bool synced_;
 
 };
 

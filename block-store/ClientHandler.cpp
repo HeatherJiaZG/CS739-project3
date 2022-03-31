@@ -43,7 +43,7 @@ void ClientHandler::read(std::string& _return, const int64_t addr) {
   ReadLock r_lock(rwLock);
 
   string filename = Util::getFilename(addr);
-  string filepath = "/tmp/primary/" + filename + ".file";
+  string filepath = PRIMARY_FILE_DIR.data() + filename + ".file";
   if ((fd = open(filepath.c_str(), O_RDONLY)) == -1) {
       perror("open error");
       exit(1);
@@ -64,7 +64,7 @@ int32_t ClientHandler::write(const int64_t addr, const std::string& content) {
   WriteLock w_lock(rwLock);
 
   string filename = Util::getFilename(addr);
-  string filepath = "/tmp/primary/" + filename + ".file";
+  string filepath = PRIMARY_FILE_DIR.data() + filename + ".file";
 
   if ((fd = open(filepath.c_str(), O_WRONLY)) == -1) {
       Util::initFile(filepath);
@@ -77,15 +77,16 @@ int32_t ClientHandler::write(const int64_t addr, const std::string& content) {
   auto nBytes = pwrite(fd, writebuf, len, 0);
   close(fd);
 
-//  // Sync to backup
-//  int32_t res = toBackupClient_->sync(addr, content);
-//  if (res == -1) {
-//    // backup out-of-date, sync entire storage
-//    std::ifstream f(PRIMARY_CENTRAL_STORAGE);
-//    std::stringstream ss;
-//    ss << f.rdbuf();
-//    toBackupClient_->sync_entire(ss.str());
-//  }
+  // Sync to backup
+  int32_t res = toBackupClient_->sync(addr, content);
+  if (res == -1) {
+      std::cout << "hello? start to write whole" << std::endl;
+    // backup out-of-date, sync entire storage
+    std::ifstream f(PRIMARY_CENTRAL_STORAGE.data());
+    std::stringstream ss;
+    ss << f.rdbuf();
+    toBackupClient_->sync_entire(ss.str());
+  }
 
   cout<<"write success\n"<<endl;
 

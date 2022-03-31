@@ -52,7 +52,6 @@ void test2(ClientClient client) {
         client.write(0 + i * 4096, content);
         std::string str;
         client.read(str, 0 + i * 4096);
-        std::cout << str << std::endl;
     }
 }
 
