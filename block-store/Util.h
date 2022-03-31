@@ -13,6 +13,7 @@ class Util {
 
 public:
   static void initFile(const std::string &path);
+  static std::string getFilename(const int addr);
 
 };
 
