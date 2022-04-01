@@ -3,9 +3,14 @@
 //
 
 #include "Util.h"
+#include "Config.h"
 #include <iostream>
 #include <fstream>
-#include "Config.h"
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+#include <fmt/format.h>
+#include "sstream"
 
 using namespace std;
 
@@ -17,9 +22,22 @@ void Util::initFile(const std::string &path) {
   outfile.close();
 }
 
-std::string Util::getFilename(const int addr) {
+int Util::getFilename(const int addr) {
     int quotient = addr / BLOCK_SIZE;
-    return to_string(quotient);
+    return quotient;
+}
+
+int Util::writeSingleBlock(const std::string& filepath, int offset, const char* content, int st, int ed) {
+    int fd;
+    if ((fd = open(filepath.c_str(), O_WRONLY)) == -1) {
+        Util::initFile(filepath);
+        fd = open(filepath.c_str(), O_WRONLY);
+    }
+
+    auto nBytes =  pwrite(fd, content + st, ed - st, offset);
+    close(fd);
+
+    return 0;
 }
 
 }

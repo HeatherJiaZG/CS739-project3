@@ -13,9 +13,11 @@ class Util {
 
 public:
   static void initFile(const std::string &path);
-  static std::string getFilename(const int addr);
+  static int getFilename(const int addr);
+  static int writeSingleBlock(const std::string& filepath, int offset, const char* content, int st, int ed);
 
-};
+
+    };
 
 }
 

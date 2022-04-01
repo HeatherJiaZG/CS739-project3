@@ -38,59 +38,63 @@ ClientHandler::ClientHandler() {
 void ClientHandler::read(std::string& _return, const int64_t addr) {
   int fd;
   off_t offset = addr;
-  char readbuf[BLOCK_SIZE];
+  char readbuf[BLOCK_SIZE] = {};
 
   ReadLock r_lock(rwLock);
 
-  string filename = Util::getFilename(addr);
+  string filename = std::to_string(Util::getFilename(addr));
   string filepath = PRIMARY_FILE_DIR.data() + filename + ".file";
   if ((fd = open(filepath.c_str(), O_RDONLY)) == -1) {
+      // TODO: open err or return empty block?
       perror("open error");
       exit(1);
   }
-  cout << readbuf << endl;
   pread(fd, &readbuf, BLOCK_SIZE, 0);
   _return = std::string(readbuf);
-  cout << _return << endl;
+  std::cout << _return << std::endl;
   close(fd);
   cout<<"read success\n"<<endl;
 }
 
 int32_t ClientHandler::write(const int64_t addr, const std::string& content) {
-  int fd;
-  off_t offset = addr;
-  char writebuf[BLOCK_SIZE] = {};
 
   WriteLock w_lock(rwLock);
 
-  string filename = Util::getFilename(addr);
-  string filepath = PRIMARY_FILE_DIR.data() + filename + ".file";
+  int content_len = content.length();
+  int block_num = Util::getFilename(addr);
+  int offset = addr - block_num * BLOCK_SIZE;
 
-  if ((fd = open(filepath.c_str(), O_WRONLY)) == -1) {
-      Util::initFile(filepath);
-      fd = open(filepath.c_str(), O_WRONLY);
+  //TODO 1) change lock granularity to single block; 2) writeSingleBlock can be paralleled
+
+  // first write
+  string filepath = PRIMARY_FILE_DIR.data() + std::to_string(block_num) + ".file";
+  int write_len = content_len <= BLOCK_SIZE - offset? content_len : BLOCK_SIZE - offset;
+  Util::writeSingleBlock(filepath, offset, content.c_str(), 0, write_len);
+
+  // write to subsequent blocks
+  while (content_len - write_len >= BLOCK_SIZE) {
+      string filepath = PRIMARY_FILE_DIR.data() + std::to_string(++block_num) + ".file";
+      Util::writeSingleBlock(filepath, 0, content.c_str(), write_len, write_len + BLOCK_SIZE);
+      write_len += BLOCK_SIZE;
   }
 
-  strcat(writebuf, content.c_str());
-  int len = strlen(writebuf);
-  // here we do not consider the offset is 10 and the buf size is 4k, which means we need to write 2 files
-  auto nBytes = pwrite(fd, writebuf, len, 0);
-  close(fd);
+  // process the remaining contents
+  if (write_len < content_len) {
+      string filepath = PRIMARY_FILE_DIR.data() + std::to_string(++block_num) + ".file";
+      Util::writeSingleBlock(filepath, 0, content.c_str(), write_len, content_len);
+  }
 
   // Sync to backup
   int32_t res = toBackupClient_->sync(addr, content);
   if (res == -1) {
-      std::cout << "hello? start to write whole" << std::endl;
-    // backup out-of-date, sync entire storage
-    std::ifstream f(PRIMARY_CENTRAL_STORAGE.data());
-    std::stringstream ss;
-    ss << f.rdbuf();
-    toBackupClient_->sync_entire(ss.str());
+    // backup out-of-date, abort
+    std::cout << "write failed due to sync error." << std::endl;
+    return -1;
   }
 
-  cout<<"write success\n"<<endl;
+  std::cout << "write success\n" << std::endl;
 
-  return (int32_t) nBytes;
+  return 0;
 }
 
 }
