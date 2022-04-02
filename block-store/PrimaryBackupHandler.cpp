@@ -15,62 +15,61 @@ using namespace std;
 
 namespace block_store {
 
-PrimaryBackupHandler::PrimaryBackupHandler()
-{
-  // remove all contents in central storage to init
-  // Util::initFile(BACKUP_CENTRAL_STORAGE.data());
-}
-
-int32_t PrimaryBackupHandler::heartbeat(const int32_t msg) {
-  return 0;
-}
-
 int32_t PrimaryBackupHandler::sync(const int64_t addr, const std::string& content) {
-    int content_len = content.length();
-    int block_num = Util::getFilename(addr);
-    int offset = addr - block_num * BLOCK_SIZE;
+  // if backup store is not synced to primary
+  if (!synced_) {
+    return -1;
+  }
 
-    //TODO: writeSingleBlock can be paralleled
+  int content_len = content.length();
+  int block_num = Util::getFilename(addr);
+  int offset = addr - block_num * BLOCK_SIZE;
 
-    // first write
-    string filepath = BACKUP_FILE_DIR.data() + std::to_string(block_num) + ".file";
-    int write_len = content_len <= BLOCK_SIZE - offset? content_len : BLOCK_SIZE - offset;
-    Util::writeSingleBlock(filepath, offset, content.c_str(), 0, write_len);
+  //TODO: writeSingleBlock can be paralleled
 
-    // write to subsequent blocks
-    while (content_len - write_len >= BLOCK_SIZE) {
-        string filepath = BACKUP_FILE_DIR.data() + std::to_string(++block_num) + ".file";
-        Util::writeSingleBlock(filepath, 0, content.c_str(), write_len, write_len + BLOCK_SIZE);
-        write_len += BLOCK_SIZE;
-    }
+  // first write
+  string filepath = BACKUP_FILE_DIR.data() + std::to_string(block_num) + ".file";
+  int write_len = content_len <= BLOCK_SIZE - offset? content_len : BLOCK_SIZE - offset;
+  Util::writeSingleBlock(filepath, offset, content.c_str(), 0, write_len);
 
-    // process the remaining contents
-    if (write_len < content_len) {
-        string filepath = BACKUP_FILE_DIR.data() + std::to_string(++block_num) + ".file";
-        Util::writeSingleBlock(filepath, 0, content.c_str(), write_len, content_len);
-    }
+  // write to subsequent blocks
+  while (content_len - write_len >= BLOCK_SIZE) {
+      string filepath = BACKUP_FILE_DIR.data() + std::to_string(++block_num) + ".file";
+      Util::writeSingleBlock(filepath, 0, content.c_str(), write_len, write_len + BLOCK_SIZE);
+      write_len += BLOCK_SIZE;
+  }
 
-  cout<<"backup write success\n"<<endl;
+  // process the remaining contents
+  if (write_len < content_len) {
+      string filepath = BACKUP_FILE_DIR.data() + std::to_string(++block_num) + ".file";
+      Util::writeSingleBlock(filepath, 0, content.c_str(), write_len, content_len);
+  }
+
+  cout<<"backup write success"<<endl;
 
   return 0;
 }
 
-int32_t PrimaryBackupHandler::sync_entire(const std::string& content) {
-//  // re-init central storage
-//  Util::initFile(BACKUP_CENTRAL_STORAGE.data());
-//
-//  // write entire content to file
-//  WriteLock w_lock(rwLock);
-//
-//  ofstream file;
-//  file.open(BACKUP_CENTRAL_STORAGE.data());
-//  file << content;
-//  file.close();
-//
-//  cout<<"backup write-entire success\n"<<endl;
-//
-//  return (int32_t) content.size();
-return 0;
+void PrimaryBackupHandler::get_timestamps(std::map<std::string, int64_t> & _return,
+                                          const std::vector<std::string> & primary_files) {
+  for (const auto &fileName: primary_files) {
+    auto filePath = BACKUP_FILE_DIR.data() + fileName;
+    auto timestamp = Util::getTimestamp(filePath);
+    _return.emplace(fileName, timestamp);
+  }
+}
+
+void PrimaryBackupHandler::sync_files(const std::map<std::string, std::string> & primary_files) {
+  for (const auto &it: primary_files) {
+    auto fileName = it.first;
+    auto filePath = BACKUP_FILE_DIR.data() + fileName;
+    auto content = it.second;
+
+    ofstream fs;
+    fs.open(filePath);
+    fs << content;
+    fs.close();
+  }
 }
 
 }

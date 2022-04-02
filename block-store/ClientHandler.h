@@ -26,6 +26,8 @@ public:
   int32_t write(const int64_t addr, const std::string& content) override;
 
 private:
+  void sync_files();
+
   // thrift client to connect to backup server
   std::shared_ptr<TTransport> toBackupSocket_;
   std::shared_ptr<TTransport> toBackupTransport_;

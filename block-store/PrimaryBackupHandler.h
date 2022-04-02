@@ -12,14 +12,14 @@ namespace block_store {
 class PrimaryBackupHandler: public PrimaryBackupIf {
 
 public:
-  PrimaryBackupHandler();
+  PrimaryBackupHandler() = default;
 
-  int32_t heartbeat(const int32_t msg) override;
   int32_t sync(const int64_t addr, const std::string& content) override;
-  int32_t sync_entire(const std::string& content) override;
+  void get_timestamps(std::map<std::string, int64_t> & _return, const std::vector<std::string> & primary_files) override;
+  void sync_files(const std::map<std::string, std::string> & primary_files) override;
 
-//private:
-//  bool synced_;
+private:
+  bool synced_ = false;
 
 };
 

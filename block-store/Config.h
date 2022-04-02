@@ -14,9 +14,6 @@ constexpr static std::string_view BACKUP_SERVER_HOSTNAME = "localhost";
 constexpr static int PRIMARY_SERVER_PORT = 9090;
 constexpr static int BACKUP_SERVER_PORT = 9091;
 
-constexpr static std::string_view PRIMARY_CENTRAL_STORAGE = "/tmp/primary_central_storage";
-constexpr static std::string_view BACKUP_CENTRAL_STORAGE = "/tmp/backup_central_storage";
-
 constexpr static std::string_view PRIMARY_FILE_DIR = "/tmp/primary/";
 constexpr static std::string_view BACKUP_FILE_DIR = "/tmp/backup/";
 

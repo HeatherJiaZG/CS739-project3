@@ -15,9 +15,8 @@ public:
   static void initFile(const std::string &path);
   static int getFilename(const int addr);
   static int writeSingleBlock(const std::string& filepath, int offset, const char* content, int st, int ed);
-
-
-    };
+  static int64_t getTimestamp(const std::string &filePath);
+};
 
 }
 

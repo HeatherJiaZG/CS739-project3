@@ -6,8 +6,8 @@ service Client {
 }
 
 service PrimaryBackup {
-	i32 heartbeat(1: i32 msg)
-	i32 sync(1: i64 addr, 2: binary content) // return -1 means backup file is out-of-date
-	i32 sync_entire(1: binary content)
+	i32 sync(1: i64 addr, 2: binary content) // return -1 means backup is out-of-date
+	map<binary, i64> get_timestamps(1: list<binary> primary_files) // timestamp is 0 if file not found on backup
+	void sync_files(1: map<binary, binary> primary_files)
 }
 

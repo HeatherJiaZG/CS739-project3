@@ -11,6 +11,8 @@
 #include <string.h>
 #include <fmt/format.h>
 #include "sstream"
+#include <sys/types.h>
+#include <filesystem>
 
 using namespace std;
 
@@ -38,6 +40,15 @@ int Util::writeSingleBlock(const std::string& filepath, int offset, const char* 
     close(fd);
 
     return 0;
+}
+
+int64_t Util::getTimestamp(const std::string &filePath) {
+  if (std::filesystem::exists(filePath)) {
+    auto ftime = std::filesystem::last_write_time(filePath);
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(ftime.time_since_epoch()).count();
+  } else {
+    return 0;
+  }
 }
 
 }
