@@ -33,7 +33,9 @@ void ClientHandler::read(std::string& _return, const int64_t addr) {
   off_t offset = addr;
   char readbuf[BLOCK_SIZE] = {};
 
+  cout << "a" << endl;
   ReadLock r_lock(rwLock);
+  cout << "b" << endl;
 
   string filename = std::to_string(Util::getFilename(addr));
   string filepath = PRIMARY_FILE_DIR.data() + filename + ".file";
@@ -111,7 +113,7 @@ void ClientHandler::sync_files() {
   for (const auto &fileName: fileNames) {
     auto filePath = PRIMARY_FILE_DIR.data() + fileName;
     auto timestamp = Util::getTimestamp(filePath);
-    primary_timestamps.emplace(filePath, timestamp);
+    primary_timestamps.emplace(fileName, timestamp);
   }
 
   // get timestamp on backup
@@ -140,7 +142,7 @@ void ClientHandler::sync_files() {
 }
 
 void ClientHandler::connect() {
-  WriteLock connect_lock(rwLock);
+  WriteLock connect_lock(connectLock);
 
   if (connected_) {
     return;
@@ -154,6 +156,7 @@ void ClientHandler::connect() {
     try {
       toBackupTransport_->open();
       connected_ = true;
+      sync_files();
       return;
     } catch (TException& tx) {
       std::cout << fmt::format("Fail to connect to backup server: {}", tx.what()) << std::endl;

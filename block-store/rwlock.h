@@ -7,6 +7,7 @@ typedef std::shared_lock< Lock >  ReadLock;
 namespace block_store {
 
 Lock rwLock;
+Lock connectLock;
 
 /*
  void ReadFunction()
