@@ -12,7 +12,7 @@ namespace block_store {
 class PrimaryBackupHandler: public PrimaryBackupIf {
 
 public:
-  PrimaryBackupHandler() = default;
+  PrimaryBackupHandler();
 
   int32_t sync(const int64_t addr, const std::string& content) override;
   void get_timestamps(std::map<std::string, int64_t> & _return, const std::vector<std::string> & primary_files) override;

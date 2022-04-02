@@ -24,6 +24,12 @@ void Util::initFile(const std::string &path) {
   outfile.close();
 }
 
+void Util::initDir(const std::string &path) {
+    string command;
+    command = "mkdir -p " + path;
+    system(command.c_str());
+}
+
 int Util::getFilename(const int addr) {
     int quotient = addr / BLOCK_SIZE;
     return quotient;

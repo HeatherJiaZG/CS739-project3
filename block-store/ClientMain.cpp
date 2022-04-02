@@ -10,6 +10,9 @@
 #include "Config.h"
 #include "iostream"
 #include "stdlib.h"
+#include "string"
+#include <boost/functional/hash.hpp>
+#include <random>
 
 using namespace apache::thrift;
 using namespace apache::thrift::protocol;
@@ -19,6 +22,8 @@ using namespace block_store;
 void test1(ClientClient client);
 void test2(ClientClient client);
 void test3(ClientClient client);
+void test4(ClientClient client);
+std::string strRand(int length);
 
 int main() {
   std::shared_ptr<TTransport> socket(new TSocket(PRIMARY_SERVER_HOSTNAME.data(), PRIMARY_SERVER_PORT));
@@ -32,7 +37,7 @@ int main() {
     std::cout << fmt::format("Fail to connect to primary server: {}", tx.what()) << std::endl;
   }
 
-  test3(client);
+  test4(client);
 
   return 0;
 }
@@ -79,3 +84,35 @@ void test3(ClientClient client) {
     std::cout << str4.length() << std::endl;
 }
 
+void test4(ClientClient client) {
+    boost::hash<std::string> string_hash;
+    std::string rand_str = strRand(4096);
+    client.write(0, rand_str);
+    int write_check_sum = string_hash(rand_str);
+    std::string read_str;
+    client.read(read_str, 0);
+    int read_check_sum = string_hash(read_str);
+    assert(write_check_sum == read_check_sum);
+    std::cout << "test 4 pass" << std::endl;
+}
+
+std::string strRand(int length) {
+    char tmp;
+    std::string buffer;
+
+    std::random_device rd;
+    std::default_random_engine random(rd());
+
+    for (int i = 0; i < length; i++) {
+
+        tmp = random() % 36;
+        if (tmp < 10) {
+            tmp += '0';
+        } else {
+            tmp -= 10;
+            tmp += 'A';
+        }
+        buffer += tmp;
+    }
+    return buffer;
+}

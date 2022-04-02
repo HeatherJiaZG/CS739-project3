@@ -21,6 +21,8 @@ using namespace std;
 namespace block_store {
 
 ClientHandler::ClientHandler() {
+  Util::initDir(PRIMARY_FILE_DIR.data());
+
   // connect to backup server
   toBackupSocket_ = std::make_shared<TSocket>(BACKUP_SERVER_HOSTNAME.data(), BACKUP_SERVER_PORT);
   toBackupTransport_ = std::make_shared<TBufferedTransport>(toBackupSocket_);
@@ -49,7 +51,7 @@ void ClientHandler::read(std::string& _return, const int64_t addr) {
       exit(1);
   }
   pread(fd, &readbuf, BLOCK_SIZE, 0);
-  _return = std::string(readbuf);
+  _return = std::string(readbuf, BLOCK_SIZE);
   std::cout << _return << std::endl;
   close(fd);
   cout<<"read success"<<endl;

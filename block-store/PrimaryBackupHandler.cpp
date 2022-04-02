@@ -15,6 +15,10 @@ using namespace std;
 
 namespace block_store {
 
+PrimaryBackupHandler::PrimaryBackupHandler() {
+  Util::initDir(BACKUP_FILE_DIR.data());
+}
+
 int32_t PrimaryBackupHandler::sync(const int64_t addr, const std::string& content) {
   // if backup store is not synced to primary
   if (!synced_) {
@@ -70,6 +74,8 @@ void PrimaryBackupHandler::sync_files(const std::map<std::string, std::string> &
     fs << content;
     fs.close();
   }
+
+  synced_ = true;
 }
 
 }
