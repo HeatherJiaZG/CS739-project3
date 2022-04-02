@@ -15,6 +15,7 @@
 #include "sstream"
 #include <filesystem>
 #include "map"
+#include "thread"
 
 using namespace std;
 
@@ -24,16 +25,7 @@ ClientHandler::ClientHandler() {
   Util::initDir(PRIMARY_FILE_DIR.data());
 
   // connect to backup server
-  toBackupSocket_ = std::make_shared<TSocket>(BACKUP_SERVER_HOSTNAME.data(), BACKUP_SERVER_PORT);
-  toBackupTransport_ = std::make_shared<TBufferedTransport>(toBackupSocket_);
-  toBackupProtocol_ = std::make_shared<TBinaryProtocol>(toBackupTransport_);
-  toBackupClient_ = std::make_shared<PrimaryBackupClient>(toBackupProtocol_);
-  try {
-    toBackupTransport_->open();
-  } catch (TException& tx) {
-    std::cout << fmt::format("Fail to connect to backup server: {}", tx.what()) << std::endl;
-    exit(1);
-  }
+  connect();
 }
 
 void ClientHandler::read(std::string& _return, const int64_t addr) {
@@ -85,13 +77,21 @@ int32_t ClientHandler::write(const int64_t addr, const std::string& content) {
       Util::writeSingleBlock(filepath, 0, content.c_str(), write_len, content_len);
   }
 
-  // Sync to backup
-  int32_t res = toBackupClient_->sync(addr, content);
-  if (res == -1) {
-    // backup out-of-date, sync files to backup
-    sync_files();
-    std::cout << "sync files to backup succeed" << std::endl;
-    return -1;
+  // Sync to backup if connected
+  if (connected_) {
+    try {
+      int32_t res = toBackupClient_->sync(addr, content);
+      if (res == -1) {
+        // backup out-of-date, sync files to backup
+        sync_files();
+        std::cout << "sync files to backup succeed" << std::endl;
+      }
+    } catch (TException& tx) {
+      std::cout << fmt::format("Fail to connect to backup server when sync: {}", tx.what()) << std::endl;
+      connected_ = false;
+      std::thread t(&ClientHandler::connect, this);
+      t.detach();
+    }
   }
 
   std::cout << "write success" << std::endl;
@@ -137,6 +137,29 @@ void ClientHandler::sync_files() {
 
   // sync files
   toBackupClient_->sync_files(files_to_sync);
+}
+
+void ClientHandler::connect() {
+  WriteLock connect_lock(rwLock);
+
+  if (connected_) {
+    return;
+  }
+
+  while (true) {
+    toBackupSocket_ = std::make_shared<TSocket>(BACKUP_SERVER_HOSTNAME.data(), BACKUP_SERVER_PORT);
+    toBackupTransport_ = std::make_shared<TBufferedTransport>(toBackupSocket_);
+    toBackupProtocol_ = std::make_shared<TBinaryProtocol>(toBackupTransport_);
+    toBackupClient_ = std::make_shared<PrimaryBackupClient>(toBackupProtocol_);
+    try {
+      toBackupTransport_->open();
+      connected_ = true;
+      return;
+    } catch (TException& tx) {
+      std::cout << fmt::format("Fail to connect to backup server: {}", tx.what()) << std::endl;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(RECONNECT_GAP));
+  }
 }
 
 }

@@ -18,6 +18,7 @@ constexpr static std::string_view PRIMARY_FILE_DIR = "/tmp/primary/";
 constexpr static std::string_view BACKUP_FILE_DIR = "/tmp/backup/";
 
 constexpr static size_t BLOCK_SIZE = 4096; // 4KB in bytes
+constexpr static int RECONNECT_GAP = 1000;
 
 }
 

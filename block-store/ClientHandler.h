@@ -27,6 +27,9 @@ public:
 
 private:
   void sync_files();
+  void connect();
+
+  bool connected_ = false;
 
   // thrift client to connect to backup server
   std::shared_ptr<TTransport> toBackupSocket_;
