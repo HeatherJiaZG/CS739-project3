@@ -30,24 +30,36 @@ ClientHandler::ClientHandler() {
 
 void ClientHandler::read(std::string& _return, const int64_t addr) {
   int fd;
-  off_t offset = addr;
-  char readbuf[BLOCK_SIZE] = {};
+  int block_num = Util::getFilename(addr);
+  int offset = addr - block_num * BLOCK_SIZE;
+  int read_len = BLOCK_SIZE - offset;
+  int second_read_len = BLOCK_SIZE-read_len; // if need a second read
+  char readbuf1[read_len] = {};
+  char readbuf2[BLOCK_SIZE-read_len] = {};
 
-  cout << "a" << endl;
   ReadLock r_lock(rwLock);
-  cout << "b" << endl;
 
-  string filename = std::to_string(Util::getFilename(addr));
-  string filepath = PRIMARY_FILE_DIR.data() + filename + ".file";
+  // first read
+  string filepath = PRIMARY_FILE_DIR.data() + std::to_string(block_num) + ".file";
   if ((fd = open(filepath.c_str(), O_RDONLY)) == -1) {
       // TODO: open err or return empty block?
       perror("open error");
       exit(1);
   }
-  pread(fd, &readbuf, BLOCK_SIZE, 0);
-  _return = std::string(readbuf, BLOCK_SIZE);
-  std::cout << _return << std::endl;
+  pread(fd, &readbuf1, read_len, offset);
   close(fd);
+
+  if(offset != 0) { // when need a second read
+    string filepath = PRIMARY_FILE_DIR.data() + std::to_string(++block_num) + ".file";
+    if ((fd = open(filepath.c_str(), O_RDONLY)) == -1) {
+      perror("open error");
+      exit(1);
+    }
+    pread(fd, &readbuf2, second_read_len, 0);
+    close(fd);
+  }
+
+  _return = std::string(readbuf1, read_len) + std::string(readbuf2, second_read_len);
   cout<<"read success"<<endl;
 }
 
