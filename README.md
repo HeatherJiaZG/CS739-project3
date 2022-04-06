@@ -7,6 +7,13 @@ ssh -p 22 tson1111@c220g5-110904.wisc.cloudlab.us # node1: 128.105.144.142
 ssh -p 22 tson1111@c220g5-110903.wisc.cloudlab.us # node2: 128.105.144.141
 ```
 
+To build it on cloud lab:
+```bash
+cd ~/cs739-p3/build
+cmake -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ ..
+cmake --build . --target server_main client_main -- -j 16
+```
+
 ## Procotol Design
 (P = Primary, B = Backup, C = Client)
 
