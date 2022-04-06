@@ -25,13 +25,17 @@ void client_read(std::string& _return, const int64_t addr, StoreServerClient cli
     while (true) {
         try {
             client0.read(_return, addr);
-            return ;
+	    if (!_return.empty()) {
+		    return;
+	    }
         } catch (TException& tx) {
             std::cout << fmt::format("Fail to read from server0: {}", tx.what()) << std::endl;
         }
         try {
             client1.read(_return, addr);
-            return ;
+	    if (!_return.empty()) {
+		    return;
+	    }
         } catch (TException& tx) {
             std::cout << fmt::format("Fail to read from server1: {}", tx.what()) << std::endl;
         }
@@ -42,13 +46,23 @@ int32_t client_write(const int64_t addr, const std::string& content, StoreServer
     while (true) {
         try {
             int32_t ret_ = client0.write(addr, content);
-            return ret_;
+	    if (ret_ != -1) {
+	    	std::cout << "Write to server0." << std::endl;
+	    return ret_;
+
+	    }
+	    std::cout << "Server 0: " <<  ret_ << std::endl;
         } catch (TException& tx) {
             std::cout << fmt::format("Fail to write to server0: {}", tx.what()) << std::endl;
         }
         try {
+
             int32_t ret_ = client1.write(addr, content);
-            return ret_;
+	    if (ret_ != -1) {
+	    std::cout << "Write to server1." << std::endl;
+	    return ret_;
+	    }
+	    std::cout << "Server 1: " <<  ret_ << std::endl;
         } catch (TException& tx) {
             std::cout << fmt::format("Fail to write to server1: {}", tx.what()) << std::endl;
         }
@@ -73,7 +87,7 @@ int main() {
   std::shared_ptr<TProtocol> protocol0(new TBinaryProtocol(transport0));
   StoreServerClient client0(protocol0);
 
-  std::shared_ptr<TTransport> socket1(new TSocket(SERVER_IP1.data(), SERVER_PORT));
+  std::shared_ptr<TTransport> socket1(new TSocket(SERVER_IP2.data(), SERVER_PORT));
   std::shared_ptr<TTransport> transport1(new TBufferedTransport(socket1));
   std::shared_ptr<TProtocol> protocol1(new TBinaryProtocol(transport1));
   StoreServerClient client1(protocol1);
@@ -94,8 +108,8 @@ int main() {
   test2(client0, client1);
   test3(client0, client1);
   test4(client0, client1);
-  measurement1(client0, client1);
-  measurement2(client0, client1);
+  // measurement1(client0, client1);
+  // measurement2(client0, client1);
 
   return 0;
 }
