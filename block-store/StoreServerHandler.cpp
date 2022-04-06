@@ -83,7 +83,7 @@ void StoreServerHandler::read(std::string& _return, const int64_t addr) {
   }
 
   _return = std::string(readbuf1, read_len) + std::string(readbuf2, second_read_len);
-  cout<<"read success"<<endl;
+  // cout<<"read success"<<endl;
 }
 
 int32_t StoreServerHandler::write(const int64_t addr, const std::string& content) {
@@ -134,7 +134,7 @@ int32_t StoreServerHandler::write(const int64_t addr, const std::string& content
     }
   }
 
-  std::cout << "write success" << std::endl;
+  // std::cout << "write success" << std::endl;
 
   return 0;
 }
@@ -169,7 +169,7 @@ int32_t StoreServerHandler::sync(const int64_t addr, const std::string& content)
     Util::writeSingleBlock(filepath, 0, content.c_str(), write_len, content_len);
   }
 
-  cout<<"backup write success"<<endl;
+  // cout<<"backup write success"<<endl;
 
   return 0;
 }
