@@ -45,17 +45,6 @@ StoreServerHandler::StoreServerHandler() {
     std::thread t(&StoreServerHandler::connectToBackup, this);
     t.detach();
   }
-
-
-  isPrimary_ = !connectedToOther_;
-
-  if (!connectedToOther_) {
-    // try to connect to backup in a while loop
-    std::thread t(&StoreServerHandler::connectToBackup, this);
-    t.detach();
-  } else {
-
-  }
 }
 
 void StoreServerHandler::read(std::string& _return, const int64_t addr) {
@@ -221,6 +210,8 @@ void StoreServerHandler::pingPrimary() {
       connectedToOther_ = false;
       isPrimary_ = true;
       isSynced_ = true;
+      std::thread t(&StoreServerHandler::connectToBackup, this);
+      t.detach();
       return;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(RECONNECT_GAP));
