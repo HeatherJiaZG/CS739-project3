@@ -8,10 +8,7 @@
 #include <fstream>
 #include <fcntl.h>
 #include <unistd.h>
-#include <string.h>
-#include <fmt/format.h>
-#include "sstream"
-#include <sys/types.h>
+#include <cstring>
 #include <filesystem>
 
 using namespace std;
@@ -55,6 +52,21 @@ int64_t Util::getTimestamp(const std::string &filePath) {
   } else {
     return 0;
   }
+}
+
+std::string Util::execCmd(const char *cmd) {
+  char buffer[128];
+  string result;
+  FILE* pipe = popen(cmd, "r");
+  while (fgets(buffer, sizeof buffer, pipe) != nullptr) {
+    result += buffer;
+  }
+  pclose(pipe);
+  return result;
+}
+
+std::string Util::getLocalIp() {
+  return execCmd("curl -s ifconfig.me");
 }
 
 }

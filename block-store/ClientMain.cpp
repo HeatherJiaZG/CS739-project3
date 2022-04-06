@@ -6,10 +6,10 @@
 #include <thrift/transport/TSocket.h>
 #include <thrift/transport/TTransportUtils.h>
 #include <fmt/format.h>
-#include "gen-cpp/Client.h"
+#include "gen-cpp/StoreServer.h"
 #include "Config.h"
 #include "iostream"
-#include "stdlib.h"
+#include <cstdlib>
 #include "string"
 #include <boost/functional/hash.hpp>
 #include <chrono>
@@ -20,21 +20,21 @@ using namespace apache::thrift::protocol;
 using namespace apache::thrift::transport;
 using namespace block_store;
 
-void test1(ClientClient client);
-void test2(ClientClient client);
-void test3(ClientClient client);
-void test4(ClientClient client);
+void test1(StoreServerClient client);
+void test2(StoreServerClient client);
+void test3(StoreServerClient client);
+void test4(StoreServerClient client);
 std::string strRand(int length);
-void measurement1(ClientClient client);
-void measurement2(ClientClient client);
-void time_multiple_reads(ClientClient client, int num_of_reads);
-void time_multiple_writes(ClientClient client, int num_of_reads);
+void measurement1(StoreServerClient client);
+void measurement2(StoreServerClient client);
+void time_multiple_reads(StoreServerClient client, int num_of_reads);
+void time_multiple_writes(StoreServerClient client, int num_of_reads);
 
 int main() {
-  std::shared_ptr<TTransport> socket(new TSocket(PRIMARY_SERVER_HOSTNAME.data(), PRIMARY_SERVER_PORT));
+  std::shared_ptr<TTransport> socket(new TSocket("TODO", SERVER_PORT));
   std::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
   std::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
-  ClientClient client(protocol);
+  StoreServerClient client(protocol);
 
   try {
     transport->open();
@@ -52,7 +52,7 @@ int main() {
 }
 
 // write and read 1 simple string
-void test1(ClientClient client) { 
+void test1(StoreServerClient client) { 
     std::string input_str = "hello world";
     client.write(0, input_str);
     std::string str;
@@ -64,7 +64,7 @@ void test1(ClientClient client) {
 }
 
 // write and read 1 simple string multiple rounds
-void test2(ClientClient client) { 
+void test2(StoreServerClient client) { 
     int rand_num = rand() % 100; // num of rounds
     std::string content = "hello world";
     for (int i = 0; i < rand_num; i++) {
@@ -76,7 +76,7 @@ void test2(ClientClient client) {
 }
 
 // write the size of two blocks and read
-void test3(ClientClient client) { 
+void test3(StoreServerClient client) { 
     // create a file
     client.write(0, "hello world");
     std::string str;
@@ -103,7 +103,7 @@ void test3(ClientClient client) {
 }
 
 // write and read a string of block size and compare checksum
-void test4(ClientClient client) {
+void test4(StoreServerClient client) {
     boost::hash<std::string> string_hash;
     std::string rand_str = strRand(4096);
     client.write(0, rand_str);
@@ -117,14 +117,14 @@ void test4(ClientClient client) {
 }
 
 // show latency of 100, 500, 1000 reads
-void measurement1(ClientClient client) {
+void measurement1(StoreServerClient client) {
     time_multiple_reads(client, 100);
     time_multiple_reads(client, 500);
     time_multiple_reads(client, 1000);
 }
 
 // read 4KB at the same address repetitively
-void time_multiple_reads(ClientClient client, int num_of_reads) {
+void time_multiple_reads(StoreServerClient client, int num_of_reads) {
     // write contents
     std::string rand_str = strRand(BLOCK_SIZE);
     client.write(0, rand_str);
@@ -141,14 +141,14 @@ void time_multiple_reads(ClientClient client, int num_of_reads) {
 }
 
 // show latency of 50, 100, 300 writes at random addresses
-void measurement2(ClientClient client) {
+void measurement2(StoreServerClient client) {
     time_multiple_writes(client, 50);
     time_multiple_writes(client, 100);
     time_multiple_writes(client, 300);
 }
 
 // write 4KB at random address
-void time_multiple_writes(ClientClient client, int num_of_reads) {
+void time_multiple_writes(StoreServerClient client, int num_of_reads) {
     // write and capture latency
     auto begin = std::chrono::high_resolution_clock::now();
     for (int i=0; i<num_of_reads; i++){

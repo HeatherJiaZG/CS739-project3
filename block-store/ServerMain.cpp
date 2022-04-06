@@ -5,7 +5,7 @@
 #include <thrift/server/TThreadedServer.h>
 #include <thrift/transport/TServerSocket.h>
 #include <thrift/transport/TTransportUtils.h>
-#include "ClientHandler.h"
+#include "StoreServerHandler.h"
 #include "Config.h"
 #include "iostream"
 
@@ -21,8 +21,8 @@ int main(int argc, char **argv) {
   // int clients = atoi(argv[1]);
 
   TThreadedServer server(
-          std::make_shared<ClientProcessor>(std::make_shared<ClientHandler>()),
-          std::make_shared<TServerSocket>(PRIMARY_SERVER_PORT), //port
+          std::make_shared<StoreServerProcessor>(std::make_shared<StoreServerHandler>()),
+          std::make_shared<TServerSocket>(SERVER_PORT), //port
           std::make_shared<TBufferedTransportFactory>(),
           std::make_shared<TBinaryProtocolFactory>());
   std::cout << "Primary server started..." << std::endl;
