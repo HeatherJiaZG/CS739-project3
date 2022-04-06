@@ -37,6 +37,7 @@ private:
   void syncFiles();
   bool tryConnectToPrimary();
   void connectToBackup();
+  void pingPrimary();
 
   bool connectedToOther_ = false;
   bool isPrimary_ = false;

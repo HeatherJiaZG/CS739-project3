@@ -33,11 +33,28 @@ StoreServerHandler::StoreServerHandler() {
   }
 
   connectedToOther_ = tryConnectToPrimary();
+
+  if (connectedToOther_) {
+    // this means connected to primary, then we keep pinging primary
+    isPrimary_ = false;
+    std::thread t(&StoreServerHandler::pingPrimary, this);
+    t.detach();
+  } else {
+    // this means primary is myself, then we keep connecting backup
+    isPrimary_ = true;
+    std::thread t(&StoreServerHandler::connectToBackup, this);
+    t.detach();
+  }
+
+
   isPrimary_ = !connectedToOther_;
+
   if (!connectedToOther_) {
     // try to connect to backup in a while loop
     std::thread t(&StoreServerHandler::connectToBackup, this);
     t.detach();
+  } else {
+
   }
 }
 
@@ -193,7 +210,21 @@ void StoreServerHandler::sync_files(const std::map<std::string, std::string> & p
 }
 
 void StoreServerHandler::ping() {
+  // noop, it's just a heartbeat from backup to make sure I (primary) am alive
+}
 
+void StoreServerHandler::pingPrimary() {
+  while (true) {
+    try {
+      toOtherClient_->ping();
+    } catch (TException& tx) {
+      connectedToOther_ = false;
+      isPrimary_ = true;
+      isSynced_ = true;
+      return;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(RECONNECT_GAP));
+  }
 }
 
 void StoreServerHandler::syncFiles() {
