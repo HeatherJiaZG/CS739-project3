@@ -79,7 +79,7 @@ std::string strRand(int length);
 void measurement1(StoreServerClient client0, StoreServerClient client1);
 void measurement2(StoreServerClient client0, StoreServerClient client1);
 void time_multiple_reads(StoreServerClient client0, StoreServerClient client1, int num_of_reads);
-void time_multiple_writes(StoreServerClient client0, StoreServerClient client1, int num_of_reads);
+void time_multiple_readwrites(StoreServerClient client0, StoreServerClient client1, int num_of_reads);
 
 int main() {
   std::shared_ptr<TTransport> socket0(new TSocket(SERVER_IP1.data(), SERVER_PORT));
@@ -104,12 +104,12 @@ int main() {
         std::cout << fmt::format("Fail to connect to server1: {}", tx.what()) << std::endl;
     }
 
-  test1(client0, client1);
-  test2(client0, client1);
-  test3(client0, client1);
-  test4(client0, client1);
-  // measurement1(client0, client1);
-  // measurement2(client0, client1);
+//   test1(client0, client1);
+//   test2(client0, client1);
+//   test3(client0, client1);
+//   test4(client0, client1);
+//   measurement1(client0, client1);
+  measurement2(client0, client1);
 
   return 0;
 }
@@ -203,26 +203,37 @@ void time_multiple_reads(StoreServerClient client0, StoreServerClient client1, i
     printf("Reading %d times takes %.3f seconds.\n", num_of_reads, elapsed.count() * 1e-9);
 }
 
-// show latency of 50, 100, 300 writes at random addresses
+// show latency of 50, 100, 300 readwrites at random addresses
 void measurement2(StoreServerClient client0, StoreServerClient client1) {
-    time_multiple_writes(client0, client1, 50);
-    time_multiple_writes(client0, client1, 100);
-    time_multiple_writes(client0, client1, 300);
+    printf("measuring read/writes.\n");
+    time_multiple_readwrites(client0, client1, 50);
+    time_multiple_readwrites(client0, client1, 100);
+    time_multiple_readwrites(client0, client1, 300);
 }
 
 // write 4KB at random address
-void time_multiple_writes(StoreServerClient client0, StoreServerClient client1, int num_of_reads) {
+void time_multiple_readwrites(StoreServerClient client0, StoreServerClient client1, int num_of_reads) {
     // write and capture latency
     auto begin = std::chrono::high_resolution_clock::now();
     for (int i=0; i<num_of_reads; i++){
       int rand_addr = rand() % 100;
       std::string str(BLOCK_SIZE, 'x');
       client_write(rand_addr, str, client0, client1);
+
+      std::string read_str;
+      client_read(read_str, rand_addr, client0, client1);
     }
     auto end = std::chrono::high_resolution_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
     printf("Writing %d times takes %.3f seconds.\n", num_of_reads, elapsed.count() * 1e-9);
 }
+
+// // show latency of 50, 100, 300 read/writes at random addresses
+// void measurement3(StoreServerClient client0, StoreServerClient client1) {
+//     time_multiple_writes(client0, client1, 50);
+//     time_multiple_writes(client0, client1, 100);
+//     time_multiple_writes(client0, client1, 300);
+// }
 
 std::string strRand(int length) {
     char tmp;

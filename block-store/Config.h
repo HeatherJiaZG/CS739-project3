@@ -9,8 +9,8 @@
 
 namespace block_store {
 
-constexpr static std::string_view SERVER_IP1 = "128.105.144.168";
-constexpr static std::string_view SERVER_IP2 = "128.105.144.142";
+constexpr static std::string_view SERVER_IP1 = "128.105.144.168"; 
+constexpr static std::string_view SERVER_IP2 = "128.105.144.142"; 
 constexpr static int SERVER_PORT = 9090;
 constexpr static std::string_view STORE_DIR = "/tmp/block_store/";
 constexpr static size_t BLOCK_SIZE = 4096; // 4KB in bytes
