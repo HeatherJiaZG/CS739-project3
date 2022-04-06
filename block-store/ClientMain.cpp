@@ -47,11 +47,11 @@ int32_t client_write(const int64_t addr, const std::string& content, StoreServer
         try {
             int32_t ret_ = client0.write(addr, content);
 	    if (ret_ != -1) {
-	    	std::cout << "Write to server0." << std::endl;
+	    	// std::cout << "Write to server0." << std::endl;
 	    return ret_;
 
 	    }
-	    std::cout << "Server 0: " <<  ret_ << std::endl;
+	    // std::cout << "Server 0: " <<  ret_ << std::endl;
         } catch (TException& tx) {
             std::cout << fmt::format("Fail to write to server0: {}", tx.what()) << std::endl;
         }
@@ -59,10 +59,10 @@ int32_t client_write(const int64_t addr, const std::string& content, StoreServer
 
             int32_t ret_ = client1.write(addr, content);
 	    if (ret_ != -1) {
-	    std::cout << "Write to server1." << std::endl;
+	    // std::cout << "Write to server1." << std::endl;
 	    return ret_;
 	    }
-	    std::cout << "Server 1: " <<  ret_ << std::endl;
+	    // std::cout << "Server 1: " <<  ret_ << std::endl;
         } catch (TException& tx) {
             std::cout << fmt::format("Fail to write to server1: {}", tx.what()) << std::endl;
         }
